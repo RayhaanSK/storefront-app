@@ -4,14 +4,27 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"storefrontapp/platform/database"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	db, err := database.OpenPostgres(ctx, database.Config{
+		Host:     "localhost",
+		Port:     "5432",
+		User:     "storefront",
+		Password: "storefront",
+		Name:     "storefrontapp",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	router := gin.Default()
 
