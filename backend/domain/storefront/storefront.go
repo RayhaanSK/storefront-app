@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const USER_TYPE_CUSTOMER string = "customer"
+const USER_TYPE_SELLER string = "seller"
+const USER_TYPE_ADMIN string = "admin"
+
 var ErrTitleRequired = errors.New("title is required; empty entries are not allowed.")
 
 // region UserType
@@ -36,6 +40,7 @@ type UserAccount struct {
 	Username     string `json:"username"`
 	PasswordHash string `json:"passwordHash"`
 	UserTypeID   int64  `json:"userTypeId"`
+	UserType     string `json:"userType"`
 }
 
 func NewUserAccount(username string, passwordHash string, userTypeId int64) (UserAccount, error) {
@@ -84,15 +89,17 @@ func NewCategory(name string) (Category, error) {
 // region Product
 
 type Product struct {
-	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Price       float64   `json:"price"`
-	Description string    `json:"description"`
-	ListedAt    time.Time `json:"listedAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-	Sold        bool      `json:"sold"`
-	SellerID    int64     `json:"sellerId"`
-	CategoryID  int64     `json:"categoryID"`
+	ID             int64     `json:"id"`
+	Name           string    `json:"name"`
+	Price          float64   `json:"price"`
+	Description    string    `json:"description"`
+	ListedAt       time.Time `json:"listedAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+	Sold           bool      `json:"sold"`
+	SellerID       int64     `json:"sellerId"`
+	SellerUsername string    `json:"sellerUsername"`
+	CategoryID     int64     `json:"categoryID"`
+	CategoryName   string    `json:"categoryName"`
 }
 
 func NewProduct(name string, price float64, description string, now time.Time, sellerId int64, categoryId int64) (Product, error) {
@@ -132,8 +139,10 @@ func (p *Product) UpdateProduct(name string, price float64, description string, 
 // region CartItem
 
 type CartItem struct {
-	CustomerID int64 `json:"customerId"`
-	ProductID  int64 `json:"productId"`
+	CustomerID   int64   `json:"customerId"`
+	ProductID    int64   `json:"productId"`
+	ProductName  string  `json:"productName"`
+	ProductPrice float64 `json:"productPrice"`
 }
 
 func NewCartItem(customerId int64, productId int64) (CartItem, error) {

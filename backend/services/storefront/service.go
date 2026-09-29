@@ -2,10 +2,13 @@ package storefront
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	domain "storefrontapp/domain/storefront"
 )
+
+var ErrUserAccountNotFound = errors.New("User account not found.")
 
 type Repository interface {
 	CreateUserAccount(ctx context.Context, userAccount domain.UserAccount) (domain.UserAccount, error)
@@ -19,7 +22,7 @@ type Repository interface {
 	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)
 	DeleteProduct(ctx context.Context, id int64) error
 	CreateCartItem(ctx context.Context, cartItem domain.CartItem) (domain.CartItem, error)
-	ListCartItems(ctx context.Context) ([]domain.CartItem, error)
+	ListCartItemsNamesPrices(ctx context.Context) ([]domain.CartItem, error)
 	DeleteCartItem(ctx context.Context, customerId int64, productId int64) error
 	DeleteCartItems(ctx context.Context, customerId int64) error
 }
