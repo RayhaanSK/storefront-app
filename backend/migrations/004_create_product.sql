@@ -1,6 +1,6 @@
 CREATE TABLE product (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL CHECK (length(trim(title)) > 0),
     price MONEY NOT NULL,
     description TEXT NULL,
     listed_at TIMESTAMPTZ NOT NULL,
