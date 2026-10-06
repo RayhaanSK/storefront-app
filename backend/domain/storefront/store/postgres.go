@@ -14,10 +14,48 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
-// NewPostgresRepository constructs a PostgreSQL TODO repository
+// NewPostgresRepository constructs a PostgreSQL STOREFRONT repository
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	return &PostgresRepository{db: db}
 }
+
+// region User Type
+
+func (r *PostgresRepository) ListUserTypes(ctx context.Context) ([]domain.UserType, error) {
+	const query = `
+		SELECT (user_type.id, user_type.type)
+		FROM user_type;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("list user types: %w", err)
+	}
+	defer rows.Close()
+
+	var userTypes []domain.UserType
+
+	for rows.Next() {
+		var userType domain.UserType
+
+		if err := rows.Scan(
+			&userType.ID,
+			&userType.Type,
+		); err != nil {
+			return nil, fmt.Errorf("scan user type: %w", err)
+		}
+
+		userTypes = append(userTypes, userType)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate user types: %w", err)
+	}
+
+	return userTypes, nil
+}
+
+// endregion
 
 // region User Account
 

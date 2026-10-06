@@ -13,6 +13,7 @@ var ErrProductNotFound = errors.New("Product not found.")
 var ErrCartItemNotFound = errors.New("Cart item not found")
 
 type Repository interface {
+	ListUserTypes(ctx context.Context) ([]domain.UserType, error)
 	CreateUserAccount(ctx context.Context, userAccount domain.UserAccount) (domain.UserAccount, error)
 	ListUserAccounts(ctx context.Context) ([]domain.UserAccount, error)
 	GetUserAccount(ctx context.Context, id int64) (domain.UserAccount, error)
