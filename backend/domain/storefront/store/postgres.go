@@ -23,7 +23,7 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 
 func (r *PostgresRepository) ListUserTypes(ctx context.Context) ([]domain.UserType, error) {
 	const query = `
-		SELECT (user_type.id, user_type.type)
+		SELECT user_type.id, user_type.type
 		FROM user_type;
 	`
 
@@ -112,6 +112,7 @@ func (r *PostgresRepository) ListUserAccounts(ctx context.Context) ([]domain.Use
 			&userAccount.Username,
 			&userAccount.PasswordHash,
 			&userAccount.UserTypeID,
+			&userAccount.UserType,
 		); err != nil {
 			return nil, fmt.Errorf("scan user account: %w", err)
 		}
@@ -145,6 +146,7 @@ func (r *PostgresRepository) GetUserAccount(ctx context.Context, username string
 		&userAccount.Username,
 		&userAccount.PasswordHash,
 		&userAccount.UserTypeID,
+		&userAccount.UserType,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
