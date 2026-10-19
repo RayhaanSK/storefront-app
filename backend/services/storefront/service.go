@@ -23,11 +23,11 @@ type Repository interface {
 	ListOwnProducts(ctx context.Context, sellerId int64) ([]domain.Product, error)                     // PASSED
 	ListProductsInCart(ctx context.Context, customerId int64) ([]domain.Product, error)                // PASSED
 	GetProduct(ctx context.Context, id int64) (domain.Product, error)                                  // PASSED
-	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)
-	DeleteProduct(ctx context.Context, id int64) error
-	CreateCartItem(ctx context.Context, cartItem domain.CartItem) (domain.CartItem, error)
-	DeleteCartItem(ctx context.Context, customerId int64, productId int64) error
-	DeleteCartItems(ctx context.Context, customerId int64) error
+	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)                 // PASSED
+	DeleteProduct(ctx context.Context, id int64) error                                                 // PASSED
+	CreateCartItem(ctx context.Context, cartItem domain.CartItem) (domain.CartItem, error)             // PASSED
+	DeleteCartItem(ctx context.Context, customerId int64, productId int64) error                       // PASSED
+	DeleteCartItems(ctx context.Context, customerId int64) error                                       // PASSED
 }
 
 type Service struct {

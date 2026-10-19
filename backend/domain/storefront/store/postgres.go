@@ -393,14 +393,14 @@ func (r *PostgresRepository) GetProduct(ctx context.Context, id int64) (domain.P
 func (r *PostgresRepository) UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error) {
 	const query = `
 		UPDATE product
-		SET product.name = $1,
-			product.price = $2,
-			product.description = $3,
-			product.updated_at = $4,
-			product.category_id = $5
+		SET name = $1,
+			price = $2,
+			description = $3,
+			updated_at = $4,
+			category_id = $5
 		FROM category
 		WHERE product.id = $6
-		  AND product.category_id = category.id
+		  AND category.id = $5
 		RETURNING product.id, product.name, product.price, product.description, product.listed_at, product.updated_at, product.sold, product.category_id, category.name;
 	`
 
@@ -435,7 +435,7 @@ func (r *PostgresRepository) UpdateProduct(ctx context.Context, product domain.P
 		return domain.Product{}, fmt.Errorf("update product %w", err)
 	}
 
-	return product, nil
+	return updatedProduct, nil
 }
 
 func (r *PostgresRepository) DeleteProduct(ctx context.Context, id int64) error {

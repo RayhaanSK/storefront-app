@@ -549,9 +549,109 @@ func TestPostgresRepositoryUpdateProduct(t *testing.T) {
 	}
 }
 
+func TestPostgresRepositoryDeleteProduct(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testUserAccountID := createTestUserAccount(t, db, "testUsername", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testProduct := createTestProduct(t, db, "testProduct", 20, "This is a test product.", false, testUserAccountID, testCategoryID)
+
+	err := repo.DeleteProduct(context.Background(), testProduct.ID)
+	if err != nil {
+		t.Fatalf("delete product %v", err)
+	}
+
+	if n := countRows(t, db, "SELECT COUNT(*) FROM product WHERE id = $1", testProduct.ID); n != 0 {
+		t.Fatalf("expected product %d to be deleted, found %d rows", testProduct.ID, n)
+	}
+}
+
 // endregion
 
 // region Cart Item
+
+func TestPostgresRepositoryCreateCartItem(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testSellerID := createTestUserAccount(t, db, "testSeller", "testPasswordHash", testUserTypeID)
+	testCustomerID := createTestUserAccount(t, db, "testCustomer", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testProduct := createTestProduct(t, db, "testProduct", 20, "This is a test product.", false, testSellerID, testCategoryID)
+
+	cartItem := domain.CartItem{
+		CustomerID: testCustomerID,
+		ProductID:  testProduct.ID,
+	}
+
+	created, err := repo.CreateCartItem(context.Background(), cartItem)
+	if err != nil {
+		t.Fatalf("create cart item %v", err)
+	}
+
+	cleanupRows(t, db, "DELETE FROM cart_item WHERE customer_id = $1 AND product_id = $2", created.CustomerID, created.ProductID)
+
+	if created.CustomerID != testCustomerID {
+		t.Fatalf("expected cart item customer id %v, got %v instead", testCustomerID, created.CustomerID)
+	}
+
+	if created.ProductID != testProduct.ID {
+		t.Fatalf("expected cart item product id %v, got %v instead", testProduct.ID, created.ProductID)
+	}
+}
+
+func TestPostgresRepositoryDeleteCartItem(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testSellerID := createTestUserAccount(t, db, "testSeller", "testPasswordHash", testUserTypeID)
+	testCustomerID := createTestUserAccount(t, db, "testCustomer", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testProduct := createTestProduct(t, db, "testProduct", 20, "This is a test product.", false, testSellerID, testCategoryID)
+
+	createTestCartItem(t, db, testCustomerID, testProduct.ID)
+
+	err := repo.DeleteCartItem(context.Background(), testCustomerID, testProduct.ID)
+	if err != nil {
+		t.Fatalf("delete cart item %v", err)
+	}
+
+	if n := countRows(t, db, "SELECT COUNT(*) FROM cart_item WHERE customer_id = $1 AND product_id = $2", testCustomerID, testProduct.ID); n != 0 {
+		t.Fatalf("expected cart item (%d, %d) to be deleted, found %d rows", testCustomerID, testProduct.ID, n)
+	}
+}
+
+func TestPostgresRepositoryDeleteCartItems(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testSellerID := createTestUserAccount(t, db, "testSeller", "testPasswordHash", testUserTypeID)
+	testCustomerID := createTestUserAccount(t, db, "testCustomer", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testFirstProduct := createTestProduct(t, db, "testFirstProduct", 20, "This is the first test product.", false, testSellerID, testCategoryID)
+	testSecondProduct := createTestProduct(t, db, "testSecondProduct", 30, "This is the second test product.", false, testSellerID, testCategoryID)
+
+	createTestCartItem(t, db, testCustomerID, testFirstProduct.ID)
+	createTestCartItem(t, db, testCustomerID, testSecondProduct.ID)
+
+	err := repo.DeleteCartItems(context.Background(), testCustomerID)
+	if err != nil {
+		t.Fatalf("delete cart items %v", err)
+	}
+
+	if n := countRows(t, db, "SELECT COUNT(*) FROM cart_item WHERE customer_id = $1", testCustomerID); n != 0 {
+		t.Fatalf("expected cart items for customer %d to be deleted, found %d rows", testCustomerID, n)
+	}
+}
 
 // endregion
 
