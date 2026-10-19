@@ -126,12 +126,12 @@ func (r *PostgresRepository) ListUserAccounts(ctx context.Context) ([]domain.Use
 	return userAccounts, nil
 }
 
-func (r *PostgresRepository) GetUserAccount(ctx context.Context, id int64) (domain.UserAccount, error) {
+func (r *PostgresRepository) GetUserAccount(ctx context.Context, username string) (domain.UserAccount, error) {
 	const query = `
 		SELECT user_account.id, username, password_hash, user_type_id, type
 		FROM user_account
 		INNER JOIN user_type ON user_type_id = user_type.id
-		WHERE user_account.id = $1;
+		WHERE user_account.username = $1;
 	`
 
 	var userAccount domain.UserAccount
@@ -139,7 +139,7 @@ func (r *PostgresRepository) GetUserAccount(ctx context.Context, id int64) (doma
 	err := r.db.QueryRowContext(
 		ctx,
 		query,
-		id,
+		username,
 	).Scan(
 		&userAccount.ID,
 		&userAccount.Username,
