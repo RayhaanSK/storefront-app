@@ -175,6 +175,65 @@ func TestPostgresRepositoryDeleteUserAccount(t *testing.T) {
 
 // region Product
 
+func TestPostgresRepositoryCreateProduct(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testUserAccountID := createTestUserAccount(t, db, "testUsername", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	now := time.Now()
+
+	product, err := domain.NewProduct("testProduct", 20, "This is a test product.", now, testUserAccountID, testCategoryID)
+	if err != nil {
+		t.Fatalf("create domain user account %v", err)
+	}
+
+	created, err := repo.CreateProduct(context.Background(), product)
+	if err != nil {
+		t.Fatalf("create product %v", err)
+	}
+
+	cleanupRows(t, db, "DELETE FROM product WHERE id = $1", created.ID)
+
+	if created.ID == 0 {
+		t.Fatalf("expected database to generate id, got 0 instead")
+	}
+
+	if created.Name != product.Name {
+		t.Fatalf("expected product name %v, got %v instead", product.Name, created.Name)
+	}
+
+	if created.Price != product.Price {
+		t.Fatalf("expected product price %v, got %v instead", product.Price, created.Price)
+	}
+
+	if created.Description != product.Description {
+		t.Fatalf("expected product description %v, got %v instead", product.Description, created.Description)
+	}
+
+	if created.ListedAt.Round(1) != product.ListedAt.Round(1) {
+		t.Fatalf("expected product listed at %v, got %v instead", product.ListedAt.Round(1), created.ListedAt.Round(1))
+	}
+
+	if created.UpdatedAt.Round(1) != product.UpdatedAt.Round(1) {
+		t.Fatalf("expected product updated at %v, got %v instead", product.UpdatedAt.Round(1), created.UpdatedAt.Round(1))
+	}
+
+	if created.Sold != product.Sold {
+		t.Fatalf("expected product sold status %v, got %v instead", product.Sold, created.Sold)
+	}
+
+	if created.SellerID != product.SellerID {
+		t.Fatalf("expected product seller id %v, got %v instead", product.SellerID, created.SellerID)
+	}
+
+	if created.CategoryID != product.CategoryID {
+		t.Fatalf("expected product category id %v, got %v instead", product.CategoryID, created.CategoryID)
+	}
+}
+
 // endregion
 
 // region Cart Item
