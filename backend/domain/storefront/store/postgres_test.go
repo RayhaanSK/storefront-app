@@ -111,6 +111,23 @@ func TestPostgresRepositoryListUserAccounts(t *testing.T) {
 		}
 		if userAccount.ID == testUserAccountID {
 			foundTestAccount = true
+
+			if userAccount.Username != "testUsername" {
+				t.Fatalf("expected username %v, got %v instead", "testUsername", userAccount.Username)
+			}
+
+			if userAccount.PasswordHash != "testPasswordHash" {
+				t.Fatalf("expected password hash %v, got %v instead", "testPasswordHash", userAccount.PasswordHash)
+			}
+
+			if userAccount.UserTypeID != testUserTypeID {
+				t.Fatalf("expected user type id %v, got %v instead", testUserTypeID, userAccount.UserTypeID)
+			}
+
+			if userAccount.UserType != "test" {
+				t.Fatalf("expected user type %v, got %v instead", "test", userAccount.UserType)
+			}
+
 		}
 	}
 
@@ -231,6 +248,304 @@ func TestPostgresRepositoryCreateProduct(t *testing.T) {
 
 	if created.CategoryID != product.CategoryID {
 		t.Fatalf("expected product category id %v, got %v instead", product.CategoryID, created.CategoryID)
+	}
+}
+
+func TestPostgresRepositoryListUnsoldProducts(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testUserAccountID := createTestUserAccount(t, db, "testUsername", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testUnsoldProduct := createTestProduct(t, db, "testUnsoldProduct", 20, "This is an unsold test product.", false, testUserAccountID, testCategoryID)
+	testSoldProduct := createTestProduct(t, db, "testSoldProduct", 30, "This is a sold test product.", true, testUserAccountID, testCategoryID)
+
+	products, err := repo.ListUnsoldProducts(context.Background())
+	if err != nil {
+		t.Fatalf("list unsold products: %v", err)
+	}
+
+	foundUnsoldProduct := false
+	for _, product := range products {
+		if product.ID == 0 {
+			t.Fatalf("expected product id to be set, got 0")
+		}
+		if product.ID == testSoldProduct.ID {
+			t.Fatalf("expected sold product %d not to be in list", testSoldProduct.ID)
+		}
+		if product.ID == testUnsoldProduct.ID {
+			foundUnsoldProduct = true
+
+			if product.Name != testUnsoldProduct.Name {
+				t.Fatalf("expected product name %v, got %v instead", testUnsoldProduct.Name, product.Name)
+			}
+
+			if product.Price != testUnsoldProduct.Price {
+				t.Fatalf("expected product price %v, got %v instead", testUnsoldProduct.Price, product.Price)
+			}
+
+			if product.SellerID != testUnsoldProduct.SellerID {
+				t.Fatalf("expected product seller id %v, got %v instead", testUnsoldProduct.SellerID, product.SellerID)
+			}
+
+			if product.SellerUsername != "testUsername" {
+				t.Fatalf("expected product seller username %v, got %v instead", "testUsername", product.SellerUsername)
+			}
+
+			if product.CategoryID != testUnsoldProduct.CategoryID {
+				t.Fatalf("expected product category id %v, got %v instead", testUnsoldProduct.CategoryID, product.CategoryID)
+			}
+
+			if product.CategoryName != "testCategory" {
+				t.Fatalf("expected product category name %v, got %v instead", "testCategory", product.CategoryName)
+			}
+		}
+	}
+
+	if !foundUnsoldProduct {
+		t.Fatalf("expected unsold product %d in list", testUnsoldProduct.ID)
+	}
+}
+
+func TestPostgresRepositoryListOwnProducts(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testSellerID := createTestUserAccount(t, db, "testSeller", "testPasswordHash", testUserTypeID)
+	testOtherSellerID := createTestUserAccount(t, db, "testOtherSeller", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testOwnProduct := createTestProduct(t, db, "testOwnProduct", 20, "This is the seller's own test product.", false, testSellerID, testCategoryID)
+	testOtherProduct := createTestProduct(t, db, "testOtherProduct", 30, "This is another seller's test product.", false, testOtherSellerID, testCategoryID)
+
+	products, err := repo.ListOwnProducts(context.Background(), testSellerID)
+	if err != nil {
+		t.Fatalf("list own products: %v", err)
+	}
+
+	foundOwnProduct := false
+	for _, product := range products {
+		if product.ID == 0 {
+			t.Fatalf("expected product id to be set, got 0")
+		}
+		if product.ID == testOtherProduct.ID {
+			t.Fatalf("expected other seller's product %d not to be in list", testOtherProduct.ID)
+		}
+		if product.ID == testOwnProduct.ID {
+			foundOwnProduct = true
+
+			if product.Name != testOwnProduct.Name {
+				t.Fatalf("expected product name %v, got %v instead", testOwnProduct.Name, product.Name)
+			}
+
+			if product.Price != testOwnProduct.Price {
+				t.Fatalf("expected product price %v, got %v instead", testOwnProduct.Price, product.Price)
+			}
+
+			if product.Description != testOwnProduct.Description {
+				t.Fatalf("expected product description %v, got %v instead", testOwnProduct.Description, product.Description)
+			}
+
+			if product.ListedAt.Round(1) != testOwnProduct.ListedAt.Round(1) {
+				t.Fatalf("expected product listed at %v, got %v instead", testOwnProduct.ListedAt.Round(1), product.ListedAt.Round(1))
+			}
+
+			if product.UpdatedAt.Round(1) != testOwnProduct.UpdatedAt.Round(1) {
+				t.Fatalf("expected product updated at %v, got %v instead", testOwnProduct.UpdatedAt.Round(1), product.UpdatedAt.Round(1))
+			}
+
+			if product.Sold != testOwnProduct.Sold {
+				t.Fatalf("expected product sold status %v, got %v instead", testOwnProduct.Sold, product.Sold)
+			}
+
+			if product.CategoryID != testOwnProduct.CategoryID {
+				t.Fatalf("expected product category id %v, got %v instead", testOwnProduct.CategoryID, product.CategoryID)
+			}
+
+			if product.CategoryName != "testCategory" {
+				t.Fatalf("expected product category name %v, got %v instead", "testCategory", product.CategoryName)
+			}
+		}
+	}
+
+	if !foundOwnProduct {
+		t.Fatalf("expected own product %d in list", testOwnProduct.ID)
+	}
+}
+
+func TestPostgresRepositoryListProductsInCart(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testSellerID := createTestUserAccount(t, db, "testSeller", "testPasswordHash", testUserTypeID)
+	testCustomerID := createTestUserAccount(t, db, "testCustomer", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testCartProduct := createTestProduct(t, db, "testCartProduct", 20, "This is a test product in the cart.", false, testSellerID, testCategoryID)
+	testOtherProduct := createTestProduct(t, db, "testOtherProduct", 30, "This is a test product not in the cart.", false, testSellerID, testCategoryID)
+
+	createTestCartItem(t, db, testCustomerID, testCartProduct.ID)
+
+	products, err := repo.ListProductsInCart(context.Background(), testCustomerID)
+	if err != nil {
+		t.Fatalf("list products in cart: %v", err)
+	}
+
+	foundCartProduct := false
+	for _, product := range products {
+		if product.ID == 0 {
+			t.Fatalf("expected product id to be set, got 0")
+		}
+		if product.ID == testOtherProduct.ID {
+			t.Fatalf("expected product %d not to be in cart", testOtherProduct.ID)
+		}
+		if product.ID == testCartProduct.ID {
+			foundCartProduct = true
+
+			if product.Name != testCartProduct.Name {
+				t.Fatalf("expected product name %v, got %v instead", testCartProduct.Name, product.Name)
+			}
+
+			if product.Price != testCartProduct.Price {
+				t.Fatalf("expected product price %v, got %v instead", testCartProduct.Price, product.Price)
+			}
+
+			if product.SellerID != testCartProduct.SellerID {
+				t.Fatalf("expected product seller id %v, got %v instead", testCartProduct.SellerID, product.SellerID)
+			}
+
+			if product.SellerUsername != "testSeller" {
+				t.Fatalf("expected product seller username %v, got %v instead", "testSeller", product.SellerUsername)
+			}
+
+			if product.CategoryID != testCartProduct.CategoryID {
+				t.Fatalf("expected product category id %v, got %v instead", testCartProduct.CategoryID, product.CategoryID)
+			}
+
+			if product.CategoryName != "testCategory" {
+				t.Fatalf("expected product category name %v, got %v instead", "testCategory", product.CategoryName)
+			}
+		}
+	}
+
+	if !foundCartProduct {
+		t.Fatalf("expected cart product %d in list", testCartProduct.ID)
+	}
+}
+
+func TestPostgresRepositoryGetProduct(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testUserAccountID := createTestUserAccount(t, db, "testUsername", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+
+	testProduct := createTestProduct(t, db, "testProduct", 20, "This is a test product.", false, testUserAccountID, testCategoryID)
+
+	product, err := repo.GetProduct(context.Background(), testProduct.ID)
+	if err != nil {
+		t.Fatalf("get product %v", err)
+	}
+
+	if product.ID != testProduct.ID {
+		t.Fatalf("expected product id %v, got %v instead", testProduct.ID, product.ID)
+	}
+
+	if product.Name != testProduct.Name {
+		t.Fatalf("expected product name %v, got %v instead", testProduct.Name, product.Name)
+	}
+
+	if product.Price != testProduct.Price {
+		t.Fatalf("expected product price %v, got %v instead", testProduct.Price, product.Price)
+	}
+
+	if product.Description != testProduct.Description {
+		t.Fatalf("expected product description %v, got %v instead", testProduct.Description, product.Description)
+	}
+
+	if product.ListedAt.Round(1) != testProduct.ListedAt.Round(1) {
+		t.Fatalf("expected product listed at %v, got %v instead", testProduct.ListedAt.Round(1), product.ListedAt.Round(1))
+	}
+
+	if product.SellerID != testProduct.SellerID {
+		t.Fatalf("expected product seller id %v, got %v instead", testProduct.SellerID, product.SellerID)
+	}
+
+	if product.SellerUsername != "testUsername" {
+		t.Fatalf("expected product seller username %v, got %v instead", "testUsername", product.SellerUsername)
+	}
+
+	if product.CategoryID != testProduct.CategoryID {
+		t.Fatalf("expected product category id %v, got %v instead", testProduct.CategoryID, product.CategoryID)
+	}
+
+	if product.CategoryName != "testCategory" {
+		t.Fatalf("expected product category name %v, got %v instead", "testCategory", product.CategoryName)
+	}
+}
+
+func TestPostgresRepositoryUpdateProduct(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testUserTypeID := createTestUserType(t, db, "test")
+	testUserAccountID := createTestUserAccount(t, db, "testUsername", "testPasswordHash", testUserTypeID)
+	testCategoryID := createTestCategory(t, db, "testCategory")
+	testUpdatedCategoryID := createTestCategory(t, db, "testUpdatedCategory")
+
+	testProduct := createTestProduct(t, db, "testProduct", 20, "This is a test product.", false, testUserAccountID, testCategoryID)
+
+	product := testProduct
+	product.Name = "testUpdatedProduct"
+	product.Price = 25
+	product.Description = "This is an updated test product."
+	product.UpdatedAt = time.Now()
+	product.CategoryID = testUpdatedCategoryID
+
+	updated, err := repo.UpdateProduct(context.Background(), product)
+	if err != nil {
+		t.Fatalf("update product %v", err)
+	}
+
+	if updated.ID != testProduct.ID {
+		t.Fatalf("expected product id %v, got %v instead", testProduct.ID, updated.ID)
+	}
+
+	if updated.Name != product.Name {
+		t.Fatalf("expected product name %v, got %v instead", product.Name, updated.Name)
+	}
+
+	if updated.Price != product.Price {
+		t.Fatalf("expected product price %v, got %v instead", product.Price, updated.Price)
+	}
+
+	if updated.Description != product.Description {
+		t.Fatalf("expected product description %v, got %v instead", product.Description, updated.Description)
+	}
+
+	if updated.ListedAt.Round(1) != testProduct.ListedAt.Round(1) {
+		t.Fatalf("expected product listed at %v, got %v instead", testProduct.ListedAt.Round(1), updated.ListedAt.Round(1))
+	}
+
+	if updated.UpdatedAt.Round(1) != product.UpdatedAt.Round(1) {
+		t.Fatalf("expected product updated at %v, got %v instead", product.UpdatedAt.Round(1), updated.UpdatedAt.Round(1))
+	}
+
+	if updated.Sold != testProduct.Sold {
+		t.Fatalf("expected product sold status %v, got %v instead", testProduct.Sold, updated.Sold)
+	}
+
+	if updated.CategoryID != testUpdatedCategoryID {
+		t.Fatalf("expected product category id %v, got %v instead", testUpdatedCategoryID, updated.CategoryID)
+	}
+
+	if updated.CategoryName != "testUpdatedCategory" {
+		t.Fatalf("expected product category name %v, got %v instead", "testUpdatedCategory", updated.CategoryName)
 	}
 }
 
@@ -384,6 +699,22 @@ func createTestProduct(t *testing.T, db *sql.DB, name string, price float64, des
 		SellerID:    sellerID,
 		CategoryID:  categoryID,
 	}
+}
+
+func createTestCartItem(t *testing.T, db *sql.DB, customerID int64, productID int64) {
+	t.Helper()
+
+	_, err := db.ExecContext(
+		context.Background(),
+		"INSERT INTO cart_item (customer_id, product_id) VALUES ($1, $2)",
+		customerID,
+		productID,
+	)
+	if err != nil {
+		t.Fatalf("insert test cart item: %v", err)
+	}
+
+	cleanupRows(t, db, "DELETE FROM cart_item WHERE customer_id = $1 AND product_id = $2", customerID, productID)
 }
 
 // endregion

@@ -18,11 +18,11 @@ type Repository interface {
 	ListUserAccounts(ctx context.Context) ([]domain.UserAccount, error)                                // PASSED
 	GetUserAccount(ctx context.Context, id int64) (domain.UserAccount, error)                          // PASSED
 	DeleteUserAccount(ctx context.Context, id int64) error                                             // PASSED
-	CreateProduct(ctx context.Context, product domain.Product) (domain.Product, error)
-	ListUnsoldProducts(ctx context.Context) ([]domain.Product, error)
-	ListOwnProducts(ctx context.Context, sellerId int64) ([]domain.Product, error)
-	ListProductsInCart(ctx context.Context, customerId int64) ([]domain.Product, error)
-	GetProduct(ctx context.Context, id int64) (domain.Product, error)
+	CreateProduct(ctx context.Context, product domain.Product) (domain.Product, error)                 // PASSED
+	ListUnsoldProducts(ctx context.Context) ([]domain.Product, error)                                  // PASSED
+	ListOwnProducts(ctx context.Context, sellerId int64) ([]domain.Product, error)                     // PASSED
+	ListProductsInCart(ctx context.Context, customerId int64) ([]domain.Product, error)                // PASSED
+	GetProduct(ctx context.Context, id int64) (domain.Product, error)                                  // PASSED
 	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)
 	DeleteProduct(ctx context.Context, id int64) error
 	CreateCartItem(ctx context.Context, cartItem domain.CartItem) (domain.CartItem, error)

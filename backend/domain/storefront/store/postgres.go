@@ -226,7 +226,7 @@ func (r *PostgresRepository) CreateProduct(ctx context.Context, product domain.P
 
 func (r *PostgresRepository) ListUnsoldProducts(ctx context.Context) ([]domain.Product, error) {
 	const query = `
-		SELECT (product.id, product.name, product.price, product.seller_id, user_account.username, product.category_id, category.name)
+		SELECT product.id, product.name, product.price, product.seller_id, user_account.username, product.category_id, category.name
 		FROM product
 		INNER JOIN user_account ON seller_id = user_account.id
 		INNER JOIN category ON category_id = category.id
@@ -268,13 +268,13 @@ func (r *PostgresRepository) ListUnsoldProducts(ctx context.Context) ([]domain.P
 
 func (r *PostgresRepository) ListOwnProducts(ctx context.Context, sellerId int64) ([]domain.Product, error) {
 	const query = `
-		SELECT (product.id, product.name, product.price, product.description, product.listed_at, product.updated_at, product.sold, product.category_id, category.name)
+		SELECT product.id, product.name, product.price, product.description, product.listed_at, product.updated_at, product.sold, product.category_id, category.name
 		FROM product
-		INNER JOIN category ON product.category_id = category.id;
-		WHERE product.seller_id = $1
+		INNER JOIN category ON product.category_id = category.id
+		WHERE product.seller_id = $1;
 	`
 
-	rows, err := r.db.QueryContext(ctx, query)
+	rows, err := r.db.QueryContext(ctx, query, sellerId)
 	if err != nil {
 		return nil, fmt.Errorf("list own products: %w", err)
 	}
@@ -311,13 +311,15 @@ func (r *PostgresRepository) ListOwnProducts(ctx context.Context, sellerId int64
 
 func (r *PostgresRepository) ListProductsInCart(ctx context.Context, customerId int64) ([]domain.Product, error) {
 	const query = `
-		SELECT (product.id, product.name, product.price, product.seller_id, user_account.username, product.category_id, category.name)
+		SELECT product.id, product.name, product.price, product.seller_id, user_account.username, product.category_id, category.name
 		FROM cart_item
 		INNER JOIN product ON cart_item.product_id = product.id
+		INNER JOIN user_account ON product.seller_id = user_account.id
+		INNER JOIN category ON product.category_id = category.id
 		WHERE cart_item.customer_id = $1;
 	`
 
-	rows, err := r.db.QueryContext(ctx, query)
+	rows, err := r.db.QueryContext(ctx, query, customerId)
 	if err != nil {
 		return nil, fmt.Errorf("list cart products: %w", err)
 	}
@@ -352,10 +354,11 @@ func (r *PostgresRepository) ListProductsInCart(ctx context.Context, customerId 
 
 func (r *PostgresRepository) GetProduct(ctx context.Context, id int64) (domain.Product, error) {
 	const query = `
-		SELECT (product.id, product.name, product.price, product.description, product.listed_at, product.seller_id, user_account.username, product.category_id, category.name)
+		SELECT product.id, product.name, product.price, product.description, product.listed_at, product.seller_id, user_account.username, product.category_id, category.name
 		FROM product
-		WHERE product.id = $1
-		INNER JOIN category ON product.category_id = category.id;
+		INNER JOIN category ON product.category_id = category.id
+		INNER JOIN user_account on product.seller_id = user_account.id
+		WHERE product.id = $1;
 	`
 
 	var product domain.Product
