@@ -72,7 +72,7 @@ func (s *Service) ListAllUserAccounts(ctx context.Context) ([]domain.UserAccount
 func (s *Service) LogIntoUserAccount(ctx context.Context, username string, passwordHash string) (domain.UserAccount, bool, error) {
 	userAccount, err := s.repo.GetUserAccount(ctx, username)
 	if err != nil {
-		return domain.UserAccount{}, false, ErrIncorrectUsernameOrPassword
+		return domain.UserAccount{}, false, err
 	}
 
 	if userAccount.PasswordHash == passwordHash {
