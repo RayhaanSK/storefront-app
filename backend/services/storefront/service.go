@@ -75,11 +75,11 @@ func (s *Service) LogIntoUserAccount(ctx context.Context, username string, passw
 		return domain.UserAccount{}, false, err
 	}
 
-	if userAccount.PasswordHash == passwordHash {
-		return userAccount, true, nil
+	if userAccount.PasswordHash != passwordHash {
+		return domain.UserAccount{}, false, ErrIncorrectUsernameOrPassword
 	}
 
-	return domain.UserAccount{}, false, ErrIncorrectUsernameOrPassword
+	return userAccount, true, nil
 }
 
 func (s *Service) DeleteUserAccount(ctx context.Context, id int64) error {
