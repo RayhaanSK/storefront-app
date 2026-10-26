@@ -389,7 +389,7 @@ func (h *Handler) writeError(c *gin.Context, err error) {
 		})
 
 	case errors.Is(err, storefrontservice.ErrIncorrectUsernameOrPassword):
-		c.JSON(http.StatusNotFound, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "incorrect username or password",
 		})
 
