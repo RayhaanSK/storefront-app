@@ -51,7 +51,13 @@ type Handler struct {
 	service *storefrontservice.Service
 }
 
-// ListAllUserTypes handles GET /api/user_types
+func NewHandler(service *storefrontservice.Service) *Handler {
+	return &Handler{
+		service: service,
+	}
+}
+
+// ListAllUserTypes handles GET /api/user_type/list
 func (h *Handler) ListAllUserTypes(c *gin.Context) {
 	userTypes, err := h.service.ListAllUserTypes(c.Request.Context())
 	if err != nil {
