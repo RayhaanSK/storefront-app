@@ -27,6 +27,26 @@ type LogIntoAccountResponse struct {
 	SuccessStatus bool               `json:"successStatus"`
 }
 
+type CreateProductRequest struct {
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
+	SellerId    int64   `json:"sellerId"`
+	CategoryId  int64   `json:"categoryId"`
+}
+
+type UpdateProductRequest struct {
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
+	CategoryId  int64   `json:"categoryId"`
+}
+
+type AddProductToCartRequest struct {
+	CustomerId int64 `json:"customerId"`
+	ProductId  int64 `json:"productId"`
+}
+
 type Handler struct {
 	service *storefrontservice.Service
 }
@@ -103,7 +123,7 @@ func (h *Handler) LogIntoUserAccount(c *gin.Context) {
 		SuccessStatus: successStatus,
 	}
 
-	c.JSON(http.StatusCreated, response)
+	c.JSON(http.StatusOK, response)
 }
 
 // DeleteUserAccount handles DELETE /api/user_account/delete/:id
@@ -117,6 +137,222 @@ func (h *Handler) DeleteUserAccount(c *gin.Context) {
 	}
 
 	if err := h.service.DeleteUserAccount(c.Request.Context(), id); err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+// ListProductCatalogue handles GET /api/product/list
+func (h *Handler) ListProductCatalogue(c *gin.Context) {
+	products, err := h.service.ListProductCatalogue(c.Request.Context())
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
+}
+
+// GetSingleProductDetails handles GET /api/product/:id
+func (h *Handler) GetSingleProductDetails(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid product id",
+		})
+		return
+	}
+
+	product, err := h.service.GetSingleProductDetails(c.Request.Context(), id)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, product)
+}
+
+// ListAllSellerProducts handles GET /api/product/seller/:id
+func (h *Handler) ListAllSellerProducts(c *gin.Context) {
+	sellerId, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid seller id",
+		})
+		return
+	}
+
+	products, err := h.service.ListAllSellerProducts(c.Request.Context(), sellerId)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
+}
+
+// CreateProduct handles POST /api/product/create
+func (h *Handler) CreateProduct(c *gin.Context) {
+	var req CreateProductRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+
+	product, err := h.service.CreateProduct(
+		c.Request.Context(),
+		req.Name,
+		req.Price,
+		req.Description,
+		req.SellerId,
+		req.CategoryId,
+	)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, product)
+}
+
+// UpdateProduct handles PUT /api/product/update/:id
+func (h *Handler) UpdateProduct(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid product id",
+		})
+		return
+	}
+
+	var req UpdateProductRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+
+	product, err := h.service.UpdateProduct(
+		c.Request.Context(),
+		id,
+		req.Name,
+		req.Price,
+		req.Description,
+		req.CategoryId,
+	)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, product)
+}
+
+// DeleteProduct handles DELETE /api/product/delete/:id
+func (h *Handler) DeleteProduct(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid product id",
+		})
+		return
+	}
+
+	if err := h.service.DeleteProduct(c.Request.Context(), id); err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+// ListAllCustomerCartItems handles GET /api/cart_item/list/:customerId
+func (h *Handler) ListAllCustomerCartItems(c *gin.Context) {
+	customerId, err := strconv.ParseInt(c.Param("customerId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid customer id",
+		})
+		return
+	}
+
+	products, err := h.service.ListAllCustomerCartItems(c.Request.Context(), customerId)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
+}
+
+// AddProductToCustomerCart handles POST /api/cart_item/create
+func (h *Handler) AddProductToCustomerCart(c *gin.Context) {
+	var req AddProductToCartRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+
+	cartItem, err := h.service.AddProductToCustomerCart(
+		c.Request.Context(),
+		req.CustomerId,
+		req.ProductId,
+	)
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, cartItem)
+}
+
+// RemoveProductFromCustomerCart handles DELETE /api/cart_item/delete/:customerId/:productId
+func (h *Handler) RemoveProductFromCustomerCart(c *gin.Context) {
+	customerId, err := strconv.ParseInt(c.Param("customerId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid customer id",
+		})
+		return
+	}
+
+	productId, err := strconv.ParseInt(c.Param("productId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid product id",
+		})
+		return
+	}
+
+	if err := h.service.RemoveProductFromCustomerCart(c.Request.Context(), customerId, productId); err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+// CheckoutCustomerCart handles DELETE /api/cart_item/delete/:customerId
+func (h *Handler) CheckoutCustomerCart(c *gin.Context) {
+	customerId, err := strconv.ParseInt(c.Param("customerId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid customer id",
+		})
+		return
+	}
+
+	if err := h.service.CheckoutCustomerCart(c.Request.Context(), customerId); err != nil {
 		h.writeError(c, err)
 		return
 	}
@@ -144,6 +380,11 @@ func (h *Handler) writeError(c *gin.Context, err error) {
 	case errors.Is(err, storefrontservice.ErrCartItemNotFound):
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "cart item not found",
+		})
+
+	case errors.Is(err, storefrontservice.ErrIncorrectUsernameOrPassword):
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "incorrect username or password",
 		})
 
 	default:
