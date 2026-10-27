@@ -150,6 +150,17 @@ func (h *Handler) DeleteUserAccount(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// ListCategories handles GET /api/category/list
+func (h *Handler) ListCategories(c *gin.Context) {
+	categories, err := h.service.ListCategories(c.Request.Context())
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, categories)
+}
+
 // ListProductCatalogue handles GET /api/product/list
 func (h *Handler) ListProductCatalogue(c *gin.Context) {
 	products, err := h.service.ListProductCatalogue(c.Request.Context())

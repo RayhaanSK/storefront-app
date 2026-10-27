@@ -571,6 +571,40 @@ func TestPostgresRepositoryDeleteProduct(t *testing.T) {
 
 // endregion
 
+// region Category
+
+func TestPostgresRepositoryListCategories(t *testing.T) {
+	db := testDB(t)
+	repo := NewPostgresRepository(db)
+
+	testCategoryId := createTestCategory(t, db, "testCategory")
+
+	categories, err := repo.ListCategories(context.Background())
+	if err != nil {
+		t.Fatalf("list categories: %v", err)
+	}
+
+	foundTestCategory := false
+	for _, category := range categories {
+		if category.ID == 0 {
+			t.Fatalf("expected category id to be set, got 0")
+		}
+		if category.Name == "" {
+			t.Fatalf("expected category %d to have a name", category.ID)
+		}
+		if category.ID == testCategoryId {
+			foundTestCategory = true
+		}
+	}
+
+	if !foundTestCategory {
+		t.Fatalf("expected category %d in list", testCategoryId)
+	}
+
+}
+
+// endregion
+
 // region Cart Item
 
 func TestPostgresRepositoryCreateCartItem(t *testing.T) {

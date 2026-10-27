@@ -329,6 +329,47 @@ func TestServiceDeleteUserAccountNotFound(t *testing.T) {
 
 // endregion
 
+// region Category
+
+func TestListCategories(t *testing.T) {
+	testCategories := []domain.Category{
+		{ID: 1, Name: "testCategory1"},
+		{ID: 2, Name: "testCategory2"},
+	}
+
+	calls := 0
+
+	repo := &fakeRepository{
+		listCategoriesFunc: func(ctx context.Context) ([]domain.Category, error) {
+			calls++
+			return testCategories, nil
+		},
+	}
+
+	service := NewService(repo, fixedNow)
+
+	categories, err := service.ListCategories(context.Background())
+	if err != nil {
+		t.Fatalf("list all categories %v", err)
+	}
+
+	if calls != 1 {
+		t.Fatalf("expected repository ListCategories to be called once, got %v calls instead", calls)
+	}
+
+	if len(categories) != len(testCategories) {
+		t.Fatalf("expected %v categories, got %v instead", len(testCategories), len(categories))
+	}
+
+	for i, category := range categories {
+		if category != testCategories[i] {
+			t.Fatalf("expected category %+v at index %v, got %+v instead", testCategories[i], i, category)
+		}
+	}
+}
+
+// endregion
+
 // region Product
 
 func TestServiceListProductCatalogue(t *testing.T) {
@@ -1009,6 +1050,7 @@ type fakeRepository struct {
 	listUserAccountsFunc   func(ctx context.Context) ([]domain.UserAccount, error)
 	getUserAccountFunc     func(ctx context.Context, username string) (domain.UserAccount, error)
 	deleteUserAccountFunc  func(ctx context.Context, id int64) error
+	listCategoriesFunc     func(ctx context.Context) ([]domain.Category, error)
 	createProductFunc      func(ctx context.Context, product domain.Product) (domain.Product, error)
 	listUnsoldProductsFunc func(ctx context.Context) ([]domain.Product, error)
 	listOwnProductsFunc    func(ctx context.Context, sellerId int64) ([]domain.Product, error)
@@ -1039,6 +1081,10 @@ func (f *fakeRepository) GetUserAccount(ctx context.Context, username string) (d
 
 func (f *fakeRepository) DeleteUserAccount(ctx context.Context, id int64) error {
 	return f.deleteUserAccountFunc(ctx, id)
+}
+
+func (f *fakeRepository) ListCategories(ctx context.Context) ([]domain.Category, error) {
+	return f.listCategoriesFunc(ctx)
 }
 
 func (f *fakeRepository) CreateProduct(ctx context.Context, product domain.Product) (domain.Product, error) {

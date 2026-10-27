@@ -25,7 +25,7 @@ export interface Product {
     updatedAt: string
     sold: boolean
     sellerId: number
-    sellerUsername: number
+    sellerUsername: string
     categoryId: number
     categoryName: string
 }

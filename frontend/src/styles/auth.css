@@ -1,0 +1,101 @@
+/* Shared by the Login and Signup pages. Class names are prefixed so they can't clash. */
+
+.auth-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(3rem, 14vh, 8rem) 1.5rem 3rem;
+}
+
+.auth-title {
+    margin: 0 0 2.25rem;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 16rem;
+}
+
+.auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.auth-label {
+    font-size: 1rem;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid #cfcfcf;
+    border-radius: 0.6rem;
+    background: #ffffff;
+    font: inherit;
+    font-size: 1rem;
+}
+
+.auth-input:focus-visible,
+.auth-button:focus-visible {
+    outline: 2px solid #2b2b2b;
+    outline-offset: 2px;
+}
+
+.auth-button {
+    align-self: flex-start;
+    padding: 0.7rem 1.1rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: #2b2b2b;
+    color: #ffffff;
+    font: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.auth-button:hover:not(:disabled) {
+    background: #000000;
+}
+
+.auth-button:disabled {
+    background: #7a7a7a;
+    cursor: not-allowed;
+}
+
+.auth-message {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.35;
+}
+
+.auth-message--error {
+    color: #b00020;
+}
+
+.auth-message--success {
+    color: #1a6b34;
+}
+
+.auth-alt {
+    margin-top: 2.5rem;
+    color: #6f6f6f;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-alt:hover {
+    text-decoration: underline;
+}
+
+.auth-alt:focus-visible {
+    outline: 2px solid #2b2b2b;
+    outline-offset: 4px;
+}

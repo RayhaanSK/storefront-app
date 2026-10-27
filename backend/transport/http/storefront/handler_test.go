@@ -515,6 +515,60 @@ func TestDeleteUserAccountInternalError(t *testing.T) {
 
 // endregion
 
+// region Category
+
+func TestListCategories(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	testCategories := []domain.Category{
+		{ID: 1, Name: "testCategory1"},
+		{ID: 2, Name: "testCategory2"},
+	}
+
+	repo := &fakeRepository{
+		listCategoriesFunc: func(ctx context.Context) ([]domain.Category, error) {
+			return testCategories, nil
+		},
+	}
+
+	service := storefrontservice.NewService(repo, fixedNow)
+
+	handler := NewHandler(service)
+
+	router := gin.New()
+	router.GET("/api/category/list", handler.ListCategories)
+
+	recorder := serve(router, http.MethodGet, "/api/category/list", "")
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, recorder.Code)
+	}
+
+	var got []domain.Category
+
+	if err := json.Unmarshal(recorder.Body.Bytes(), &got); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+
+	if got[0].ID != 1 {
+		t.Fatalf("expected ID 1, got %d", got[0].ID)
+	}
+
+	if got[0].Name != "testCategory1" {
+		t.Fatalf("expected name testCategory1, got %v", got[0].Name)
+	}
+
+	if got[1].ID != 2 {
+		t.Fatalf("expected ID 2, got %d", got[1].ID)
+	}
+
+	if got[1].Name != "testCategory2" {
+		t.Fatalf("expected name testCategory2, got %v", got[1].Name)
+	}
+}
+
+// endregion
+
 // region Product
 
 func TestListProductCatalogue(t *testing.T) {
@@ -1638,6 +1692,7 @@ type fakeRepository struct {
 	listUserAccountsFunc   func(ctx context.Context) ([]domain.UserAccount, error)
 	getUserAccountFunc     func(ctx context.Context, username string) (domain.UserAccount, error)
 	deleteUserAccountFunc  func(ctx context.Context, id int64) error
+	listCategoriesFunc     func(ctx context.Context) ([]domain.Category, error)
 	createProductFunc      func(ctx context.Context, product domain.Product) (domain.Product, error)
 	listUnsoldProductsFunc func(ctx context.Context) ([]domain.Product, error)
 	listOwnProductsFunc    func(ctx context.Context, sellerId int64) ([]domain.Product, error)
@@ -1668,6 +1723,10 @@ func (f *fakeRepository) GetUserAccount(ctx context.Context, username string) (d
 
 func (f *fakeRepository) DeleteUserAccount(ctx context.Context, id int64) error {
 	return f.deleteUserAccountFunc(ctx, id)
+}
+
+func (f *fakeRepository) ListCategories(ctx context.Context) ([]domain.Category, error) {
+	return f.listCategoriesFunc(ctx)
 }
 
 func (f *fakeRepository) CreateProduct(ctx context.Context, product domain.Product) (domain.Product, error) {

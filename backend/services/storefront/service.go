@@ -20,16 +20,17 @@ type Repository interface {
 	ListUserAccounts(ctx context.Context) ([]domain.UserAccount, error)                                // PASSED
 	GetUserAccount(ctx context.Context, username string) (domain.UserAccount, error)                   // PASSED
 	DeleteUserAccount(ctx context.Context, id int64) error                                             // PASSED
-	CreateProduct(ctx context.Context, product domain.Product) (domain.Product, error)                 // PASSED
-	ListUnsoldProducts(ctx context.Context) ([]domain.Product, error)                                  // PASSED
-	ListOwnProducts(ctx context.Context, sellerId int64) ([]domain.Product, error)                     // PASSED
-	ListProductsInCart(ctx context.Context, customerId int64) ([]domain.Product, error)                // PASSED
-	GetProduct(ctx context.Context, id int64) (domain.Product, error)                                  // PASSED
-	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)                 // PASSED
-	DeleteProduct(ctx context.Context, id int64) error                                                 // PASSED
-	CreateCartItem(ctx context.Context, cartItem domain.CartItem) (domain.CartItem, error)             // PASSED
-	DeleteCartItem(ctx context.Context, customerId int64, productId int64) error                       // PASSED
-	DeleteCartItems(ctx context.Context, customerId int64) error                                       // PASSED
+	ListCategories(ctx context.Context) ([]domain.Category, error)
+	CreateProduct(ctx context.Context, product domain.Product) (domain.Product, error)     // PASSED
+	ListUnsoldProducts(ctx context.Context) ([]domain.Product, error)                      // PASSED
+	ListOwnProducts(ctx context.Context, sellerId int64) ([]domain.Product, error)         // PASSED
+	ListProductsInCart(ctx context.Context, customerId int64) ([]domain.Product, error)    // PASSED
+	GetProduct(ctx context.Context, id int64) (domain.Product, error)                      // PASSED
+	UpdateProduct(ctx context.Context, product domain.Product) (domain.Product, error)     // PASSED
+	DeleteProduct(ctx context.Context, id int64) error                                     // PASSED
+	CreateCartItem(ctx context.Context, cartItem domain.CartItem) (domain.CartItem, error) // PASSED
+	DeleteCartItem(ctx context.Context, customerId int64, productId int64) error           // PASSED
+	DeleteCartItems(ctx context.Context, customerId int64) error                           // PASSED
 }
 
 type Service struct {
@@ -84,6 +85,14 @@ func (s *Service) LogIntoUserAccount(ctx context.Context, username string, passw
 
 func (s *Service) DeleteUserAccount(ctx context.Context, id int64) error {
 	return s.repo.DeleteUserAccount(ctx, id)
+}
+
+// endregion
+
+// region Category
+
+func (s *Service) ListCategories(ctx context.Context) ([]domain.Category, error) {
+	return s.repo.ListCategories(ctx)
 }
 
 // endregion

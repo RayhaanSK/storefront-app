@@ -184,6 +184,43 @@ func (r *PostgresRepository) DeleteUserAccount(ctx context.Context, id int64) er
 
 // endregion
 
+// region Category
+
+func (r *PostgresRepository) ListCategories(ctx context.Context) ([]domain.Category, error) {
+	const query = `
+		SELECT id, name
+		FROM category;
+	`
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("list categories: %w", err)
+	}
+	defer rows.Close()
+
+	var categories []domain.Category
+
+	for rows.Next() {
+		var category domain.Category
+
+		if err := rows.Scan(
+			&category.ID,
+			&category.Name,
+		); err != nil {
+			return nil, fmt.Errorf("scan category: %w", err)
+		}
+
+		categories = append(categories, category)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate categories: %w", err)
+	}
+
+	return categories, nil
+}
+
+// endregion
+
 // region Product
 
 func (r *PostgresRepository) CreateProduct(ctx context.Context, product domain.Product) (domain.Product, error) {

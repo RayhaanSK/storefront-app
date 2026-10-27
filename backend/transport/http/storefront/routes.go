@@ -8,6 +8,7 @@ func RegisterRoutes(router *gin.Engine, handler *Handler) {
 	router.GET("/api/user_account/list", handler.ListAllUserAccounts)
 	router.POST("/api/user_account/login", handler.LogIntoUserAccount)
 	router.DELETE("/api/user_account/delete/:id", handler.DeleteUserAccount)
+	router.GET("/api/category/list", handler.ListCategories)
 	router.GET("/api/product/list", handler.ListProductCatalogue)
 	router.GET("/api/product/:id", handler.GetSingleProductDetails)
 	router.GET("/api/product/seller/:id", handler.ListAllSellerProducts)
