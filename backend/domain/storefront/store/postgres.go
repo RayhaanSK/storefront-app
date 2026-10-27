@@ -241,7 +241,7 @@ func (r *PostgresRepository) ListUnsoldProducts(ctx context.Context) ([]domain.P
 
 	var products []domain.Product
 
-	if rows.Next() {
+	for rows.Next() {
 		var product domain.Product
 
 		if err := rows.Scan(
@@ -282,7 +282,7 @@ func (r *PostgresRepository) ListOwnProducts(ctx context.Context, sellerId int64
 
 	var products []domain.Product
 
-	if rows.Next() {
+	for rows.Next() {
 		var product domain.Product
 
 		if err := rows.Scan(
@@ -327,7 +327,7 @@ func (r *PostgresRepository) ListProductsInCart(ctx context.Context, customerId 
 
 	var products []domain.Product
 
-	if rows.Next() {
+	for rows.Next() {
 		var product domain.Product
 
 		if err := rows.Scan(

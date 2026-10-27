@@ -98,7 +98,7 @@ type Product struct {
 	Sold           bool      `json:"sold"`
 	SellerID       int64     `json:"sellerId"`
 	SellerUsername string    `json:"sellerUsername"`
-	CategoryID     int64     `json:"categoryID"`
+	CategoryID     int64     `json:"categoryId"`
 	CategoryName   string    `json:"categoryName"`
 }
 
