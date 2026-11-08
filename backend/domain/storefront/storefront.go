@@ -36,7 +36,7 @@ func NewUserType(typeName string) (UserType, error) {
 // region UserAccount
 
 type UserAccount struct {
-	ID           int64  `json:"id"`
+	ID           int64  `json:"id,omitempty"`
 	Username     string `json:"username"`
 	PasswordHash string `json:"passwordHash"`
 	UserTypeID   int64  `json:"userTypeId"`

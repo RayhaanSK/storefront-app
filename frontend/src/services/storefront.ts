@@ -52,6 +52,13 @@ export function deleteUserAccount(id: number): Promise<void> {
 
 // endregion
 
+// region Category
+
+export function listAllCategories(): Promise<Category[]> {
+    return apiRequest<Category[]>("/api/category/list")
+}
+
+// endregion
 
 // region Product
 
